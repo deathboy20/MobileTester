@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export const runtime = 'nodejs';
-
 const protectedRoutes = ['/dashboard', '/jobs', '/reports', '/settings'];
 const authRoutes = ['/login', '/register'];
 
