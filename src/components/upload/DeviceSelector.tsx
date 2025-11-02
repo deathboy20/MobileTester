@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Check, ChevronsUpDown, X } from "lucide-react"
+import * as React from "react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -13,29 +13,26 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { useDeviceSelector } from "@/hooks/useDeviceSelector"
+} from "@/components/ui/popover";
+import { TOP_20_DEVICES, getDeviceById } from "@/constants/devices";
+import { useDeviceSelector } from "@/hooks/useDeviceSelector";
 
 export function DeviceSelector() {
-  const [open, setOpen] = React.useState(false)
-  const { 
-    devices, 
-    selectedDevices, 
-    toggleDevice,
-    setSelectedDevices
-  } = useDeviceSelector(5); // Limit to 5 for free tier as per prompt
+  const [open, setOpen] = React.useState(false);
+  const { devices, selectedDevices, toggleDevice, setSelectedDevices } =
+    useDeviceSelector(5); // Limit to 5 for free tier as per prompt
 
   const handleUnselect = (e: React.MouseEvent, device: string) => {
     e.preventDefault();
     e.stopPropagation();
     toggleDevice(device);
   };
-  
+
   return (
     <div className="space-y-2">
       <Popover open={open} onOpenChange={setOpen}>
@@ -81,13 +78,15 @@ export function DeviceSelector() {
                     key={device}
                     value={device}
                     onSelect={() => {
-                      toggleDevice(device)
+                      toggleDevice(device);
                     }}
                   >
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        selectedDevices.includes(device) ? "opacity-100" : "opacity-0"
+                        selectedDevices.includes(device)
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                     {device}
@@ -102,5 +101,5 @@ export function DeviceSelector() {
         Select up to 5 devices for testing (Free Tier Limit).
       </p>
     </div>
-  )
+  );
 }

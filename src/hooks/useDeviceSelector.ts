@@ -1,10 +1,12 @@
-"use client"
+"use client";
 
 import { useState, useCallback } from "react";
-import { DEVICES } from "@/lib/constants";
+import { TOP_20_DEVICES, DEFAULT_DEVICE_SELECTION } from "@/constants/devices";
 
 export function useDeviceSelector(maxSelection = 20) {
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [selectedDevices, setSelectedDevices] = useState<string[]>(
+    DEFAULT_DEVICE_SELECTION.slice(0, Math.min(5, maxSelection)),
+  );
 
   const toggleDevice = useCallback(
     (device: string) => {
@@ -19,11 +21,13 @@ export function useDeviceSelector(maxSelection = 20) {
         return prev;
       });
     },
-    [maxSelection]
+    [maxSelection],
   );
 
   const setAllDevices = useCallback(() => {
-    setSelectedDevices(DEVICES.slice(0, maxSelection));
+    setSelectedDevices(
+      TOP_20_DEVICES.slice(0, maxSelection).map((device) => device.id),
+    );
   }, [maxSelection]);
 
   const clearDevices = useCallback(() => {
@@ -31,7 +35,7 @@ export function useDeviceSelector(maxSelection = 20) {
   }, []);
 
   return {
-    devices: DEVICES,
+    devices: TOP_20_DEVICES.map((device) => device.id),
     selectedDevices,
     toggleDevice,
     setSelectedDevices,
