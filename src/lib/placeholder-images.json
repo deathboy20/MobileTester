@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "device-screenshot-1",
+      "description": "App screenshot on a virtual device.",
+      "imageUrl": "https://images.unsplash.com/photo-1730818028738-21c19c7103fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhcHAlMjBzY3JlZW58ZW58MHx8fHwxNzYyMTAwNDA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "app screen"
+    },
+    {
+      "id": "device-screenshot-2",
+      "description": "Another app screenshot on a virtual device.",
+      "imageUrl": "https://images.unsplash.com/photo-1658953229625-aad99d7603b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhcHAlMjBpbnRlcmZhY2V8ZW58MHx8fHwxNzYyMDQzMjAzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "app interface"
+    },
+    {
+      "id": "device-screenshot-3",
+      "description": "App failing on a virtual device.",
+      "imageUrl": "https://images.unsplash.com/photo-1742813615188-7ea3c64fb880?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlcnJvciUyMG1lc3NhZ2V8ZW58MHx8fHwxNzYyMTAwNDA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "error message"
+    },
+    {
+      "id": "device-screenshot-4",
+      "description": "App screenshot on a tablet device.",
+      "imageUrl": "https://images.unsplash.com/photo-1748801583967-3038967d7279?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dGFibGV0JTIwdWl8ZW58MHx8fHwxNzYyMTAwNDA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tablet ui"
+    },
+    {
+      "id": "device-screenshot-5",
+      "description": "App settings screen.",
+      "imageUrl": "https://images.unsplash.com/photo-1684390130691-7d96d3f40837?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzZXR0aW5ncyUyMHBhZ2V8ZW58MHx8fHwxNzYyMTAwNDA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "settings page"
+    },
+    {
+      "id": "report-preview-1",
+      "description": "Preview of a generated PDF report.",
+      "imageUrl": "https://images.unsplash.com/photo-1625225229083-f256754cf34e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkb2N1bWVudCUyMHJlcG9ydHxlbnwwfHx8fDE3NjIwMzI0NTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "document report"
+    },
+    {
+      "id": "report-preview-2",
+      "description": "Another preview of a generated PDF report.",
+      "imageUrl": "https://images.unsplash.com/photo-1761587941453-bd1790225d52?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhbmFseXNpcyUyMGNoYXJ0fGVufDB8fHx8MTc2MjEwMDQwNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "analysis chart"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "User avatar.",
+      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjIwNzc3MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
