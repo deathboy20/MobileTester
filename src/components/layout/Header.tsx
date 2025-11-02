@@ -18,15 +18,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard" },
@@ -36,8 +38,20 @@ const navItems = [
 ];
 
 export function Header() {
-  const { user } = useAuth();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      toast.success("Logged out successfully.");
+      router.push('/');
+    } catch (error: any) {
+      toast.error("Logout failed", { description: error.message });
+    }
+  };
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U";
@@ -49,12 +63,18 @@ export function Header() {
       .toUpperCase();
   };
 
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/';
+
+  if (isAuthPage && !isUserLoading && !user) {
+    return null; // Don't render header on auth pages if not logged in
+  }
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-      <nav className="flex-grow md:flex-grow-0">
+      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
          <Sheet>
           <SheetTrigger asChild>
-            <Button size="icon" variant="outline" className="md:hidden">
+            <Button size="icon" variant="outline" className="sm:hidden">
               <PanelLeft className="h-5 w-5" />
               <span className="sr-only">Toggle Menu</span>
             </Button>
@@ -76,7 +96,7 @@ export function Header() {
           </SheetContent>
         </Sheet>
       </nav>
-      <div className="relative flex-1 md:grow-0">
+      <div className="relative ml-auto flex-1 md:grow-0">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
@@ -93,8 +113,8 @@ export function Header() {
               className="overflow-hidden rounded-full"
             >
               <Avatar>
-                <AvatarImage src={user?.photoURL ?? ""} alt={user?.name ?? ""} />
-                <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+                <AvatarImage src={user?.photoURL ?? ""} alt={user?.displayName ?? ""} />
+                <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -108,11 +128,9 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/login" className="cursor-pointer">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Link>
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

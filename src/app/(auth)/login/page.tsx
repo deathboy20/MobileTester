@@ -12,6 +12,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useAuth } from "@/firebase";
+import { initiateEmailSignIn } from "@/firebase/non-blocking-login";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -36,7 +53,41 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+const formSchema = z.object({
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters." }),
+});
+
 export default function LoginPage() {
+  const auth = useAuth();
+  const router = useRouter();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast.success("Signed in with Google successfully!");
+    } catch (error: any) {
+      toast.error("Google Sign-In Failed", {
+        description: error.message,
+      });
+    }
+  };
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    initiateEmailSignIn(auth, values.email, values.password);
+  }
+
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
@@ -45,29 +96,61 @@ export default function LoginPage() {
           Enter your credentials to access your account.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="tester@example.com" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" placeholder="••••••••" />
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full">Sign In</Button>
-        <Button variant="outline" className="w-full">
-          <GoogleIcon className="w-5 h-5 mr-2" />
-          Sign in with Google
-        </Button>
-        <p className="text-sm text-center text-muted-foreground">
-          Don't have an account?{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
-      </CardFooter>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="tester@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" className="w-full">
+              Sign In
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              type="button"
+            >
+              <GoogleIcon className="w-5 h-5 mr-2" />
+              Sign in with Google
+            </Button>
+            <p className="text-sm text-center text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-primary hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }

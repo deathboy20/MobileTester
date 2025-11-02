@@ -1,11 +1,11 @@
 import type { Timestamp } from 'firebase/firestore';
 
 export type User = {
-  uid: string;
+  id: string;
   email: string | null;
   name: string | null;
   photoURL?: string | null;
-  createdAt?: Timestamp;
+  createdAt?: string;
 };
 
 export type JobStatus = 'queued' | 'running' | 'completed' | 'failed';
@@ -31,7 +31,7 @@ export type Job = {
   report?: JobReport;
   duration?: number;
   screenshots?: Record<string, string>;
-  createdAt: Date;
+  createdAt: string;
 };
 
 export type Device = {

@@ -17,11 +17,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DeviceSelector } from "./DeviceSelector";
 import { UploadCloud } from "lucide-react";
+import { useAuth, useFirestore, useUser } from "@/firebase";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { collection } from "firebase/firestore";
+import { useDeviceSelector } from "@/hooks/useDeviceSelector";
 
 export function UploadDialog() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [apkFile, setApkFile] = useState<File | null>(null);
+  const [readme, setReadme] = useState("");
+  
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { selectedDevices } = useDeviceSelector(5);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -34,13 +43,33 @@ export function UploadDialog() {
     }
   };
   
-  const handleSubmit = () => {
-    // In a real app, this would trigger the Firebase upload and Firestore doc creation.
-    toast.success("Job submitted! Your tests are now in the queue.");
-    // Reset state and close dialog
-    setOpen(false);
-    setStep(1);
-    setApkFile(null);
+  const handleSubmit = async () => {
+    if (!user || !firestore || !apkFile) {
+        toast.error("You must be logged in and have an APK file selected.");
+        return;
+    }
+
+    const newJob = {
+        userId: user.uid,
+        apkUrl: "", // This would be the URL from Firebase Storage after upload
+        readme,
+        devices: selectedDevices,
+        status: 'queued',
+        createdAt: new Date().toISOString(),
+    };
+
+    try {
+        const jobsCollection = collection(firestore, 'jobs');
+        await addDocumentNonBlocking(jobsCollection, newJob);
+        toast.success("Job submitted! Your tests are now in the queue.");
+        // Reset state and close dialog
+        setOpen(false);
+        setStep(1);
+        setApkFile(null);
+        setReadme("");
+    } catch (error: any) {
+        toast.error("Failed to submit job", { description: error.message });
+    }
   }
 
   const steps = [
@@ -81,7 +110,7 @@ export function UploadDialog() {
       content: (
         <div className="grid gap-2">
           <Label htmlFor="readme">README.md</Label>
-          <Textarea id="readme" placeholder="Enter any relevant information here in Markdown format..." className="min-h-[150px]" />
+          <Textarea id="readme" value={readme} onChange={(e) => setReadme(e.target.value)} placeholder="Enter any relevant information here in Markdown format..." className="min-h-[150px]" />
         </div>
       ),
       canProceed: true
@@ -95,7 +124,7 @@ export function UploadDialog() {
           <DeviceSelector />
         </div>
       ),
-      canProceed: true // DeviceSelector manages its own state
+      canProceed: selectedDevices.length > 0
     },
   ];
 
@@ -129,7 +158,7 @@ export function UploadDialog() {
           {step < steps.length ? (
             <Button onClick={() => setStep(step + 1)} disabled={!currentStep.canProceed}>Next</Button>
           ) : (
-            <Button onClick={handleSubmit}>Submit Job</Button>
+            <Button onClick={handleSubmit} disabled={!currentStep.canProceed}>Submit Job</Button>
           )}
         </DialogFooter>
       </DialogContent>

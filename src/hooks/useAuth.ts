@@ -1,18 +1,15 @@
 "use client";
 
-import type { User } from "@/lib/types";
+// This file is deprecated and will be removed.
+// Please use `import { useUser } from "@/firebase"` instead.
+
+import type { User } from "firebase/auth";
 
 // Mock implementation of useAuth hook
 // In a real app, this would use Firebase Auth and context
 export const useAuth = () => {
-  const user: User | null = {
-    uid: "mock-user-id",
-    email: "tester@example.com",
-    name: "Alex Tester",
-    photoURL: "https://picsum.photos/seed/avatar/100/100",
-  };
-
-  const loading = false;
+  const user: User | null = null;
+  const loading = true;
 
   const login = async () => { console.log("login attempt"); };
   const register = async () => { console.log("register attempt"); };

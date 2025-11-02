@@ -12,6 +12,28 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useAuth, useFirestore, useUser } from "@/firebase";
+import {
+  initiateEmailSignUp,
+} from "@/firebase/non-blocking-login";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "sonner";
+import { GoogleAuthProvider, signInWithPopup, updateProfile } from "firebase/auth";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc } from "firebase/firestore";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -36,42 +58,160 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters." }),
+});
+
 export default function RegisterPage() {
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const router = useRouter();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+       if (user && firestore) {
+        const userRef = doc(firestore, "users", user.uid);
+        setDocumentNonBlocking(userRef, {
+          id: user.uid,
+          name: user.displayName,
+          email: user.email,
+          createdAt: new Date().toISOString(),
+        }, { merge: true });
+      }
+      toast.success("Signed in with Google successfully!");
+    } catch (error: any) {
+      toast.error("Google Sign-In Failed", {
+        description: error.message,
+      });
+    }
+  };
+
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const userCredential = await initiateEmailSignUp(
+        auth,
+        values.email,
+        values.password
+      );
+
+      const user = auth.currentUser;
+      if (user) {
+        await updateProfile(user, { displayName: values.name });
+        
+        if (firestore) {
+            const userRef = doc(firestore, "users", user.uid);
+            setDocumentNonBlocking(userRef, {
+                id: user.uid,
+                name: values.name,
+                email: values.email,
+                createdAt: new Date().toISOString(),
+            }, { merge: true });
+        }
+
+        toast.success("Account created successfully!");
+      }
+    } catch (error: any) {
+      toast.error("Registration Failed", {
+        description: error.message,
+      });
+    }
+  }
+
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
+        <CardTitle className="text-2xl font-headline">
+          Create an Account
+        </CardTitle>
         <CardDescription>
           Get started with AI-powered mobile testing.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
-          <Input id="name" type="text" placeholder="Alex Tester" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="tester@example.com" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" placeholder="••••••••" />
-        </div>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-4">
-        <Button className="w-full">Create Account</Button>
-        <Button variant="outline" className="w-full">
-          <GoogleIcon className="w-5 h-5 mr-2" />
-          Sign up with Google
-        </Button>
-        <p className="text-sm text-center text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:underline">
-            Sign In
-          </Link>
-        </p>
-      </CardFooter>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Alex Tester" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="tester@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" className="w-full">
+              Create Account
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              type="button"
+              onClick={handleGoogleSignIn}
+            >
+              <GoogleIcon className="w-5 h-5 mr-2" />
+              Sign up with Google
+            </Button>
+            <p className="text-sm text-center text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-medium text-primary hover:underline"
+              >
+                Sign In
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }

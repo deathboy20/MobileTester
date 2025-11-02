@@ -1,34 +1,20 @@
+'use client';
+
 import { StatusTimeline } from "@/components/job/StatusTimeline"
 import { DeviceGrid } from "@/components/job/DeviceGrid"
 import { AIReporter } from "@/components/job/AIReporter"
 import type { Job, JobStatus } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
-
-// Mock data for a single job
-const mockJob: Job = {
-  id: "job_5g6h7i",
-  userId: "user1",
-  apkUrl: "",
-  readme: "This build includes the new user profile screen. Please focus testing on that area.",
-  devices: ["Moto G Stylus", "Pixel 7a"],
-  status: "failed",
-  duration: 150,
-  createdAt: new Date(Date.now() - 86400000),
-  report: undefined, // Let the AI generate it
-  screenshots: {
-    "Moto G Stylus": "screenshot1.png",
-    "Pixel 7a": "screenshot2.png",
-  }
-};
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 const mockDeviceStatuses: { name: string; status: JobStatus }[] = [
     { name: "Moto G Stylus", status: 'completed' },
     { name: "Pixel 7a", status: 'failed' }
 ];
 
-// Mock logs for AI analysis
 const mockLogs = `
 Test run on device: Pixel 7a
 Starting test suite: com.example.app.UserProfileTests
@@ -43,8 +29,39 @@ Test run finished. 1 of 3 tests failed.
 `;
 
 export default function JobDetailPage({ params }: { params: { id: string } }) {
-  // In a real app, you would fetch job data based on params.id
-  const job = mockJob;
+  const firestore = useFirestore();
+  
+  const jobRef = useMemoFirebase(
+    () => (params.id ? doc(firestore, 'jobs', params.id) : null),
+    [firestore, params.id]
+  );
+  const { data: job, isLoading } = useDoc<Job>(jobRef);
+
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+       <div className="text-center">
+        <h1 className="text-2xl font-bold">Job not found</h1>
+        <p className="text-muted-foreground">
+          The job you are looking for does not exist.
+        </p>
+        <Button asChild variant="outline" className="mt-4">
+            <Link href="/jobs">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to All Jobs
+            </Link>
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -59,7 +76,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
           Job Details: <span className="text-primary">{job.id}</span>
         </h1>
         <p className="text-muted-foreground">
-          Created on {job.createdAt.toLocaleString()}
+          Created on {new Date(job.createdAt).toLocaleString()}
         </p>
       </div>
 
@@ -80,7 +97,7 @@ export default function JobDetailPage({ params }: { params: { id: string } }) {
         <div className="md:col-span-2 space-y-8">
           <div>
             <h2 className="text-xl font-semibold mb-4">Device Results</h2>
-            <DeviceGrid devices={mockDeviceStatuses} />
+            <DeviceGrid devices={job.devices.map(d => ({ name: d, status: job.status === 'running' ? 'running' : 'completed' }))} />
           </div>
           <div>
             <AIReporter jobId={job.id} logs={mockLogs} />

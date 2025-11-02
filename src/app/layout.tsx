@@ -3,6 +3,8 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/sonner";
 import "./globals.css";
+import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const spaceGrotesk = Space_Grotesk({
@@ -29,8 +31,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} font-body antialiased`}
@@ -41,7 +50,15 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <div className="flex min-h-screen w-full flex-col bg-background">
+            <Sidebar />
+            <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+              <Header />
+              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 lg:p-8">
+                {children}
+              </main>
+            </div>
+          </div>
           <Toaster />
         </Providers>
       </body>
