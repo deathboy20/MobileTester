@@ -62,7 +62,6 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const auth = useAuth();
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

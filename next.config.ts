@@ -34,9 +34,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '50mb',
     },
-    // This is the key change to ensure Node.js modules are bundled correctly.
-    serverComponentsExternalPackages: ['firebase-admin'],
   },
+  serverExternalPackages: ['firebase-admin'],
 };
 
 export default nextConfig;

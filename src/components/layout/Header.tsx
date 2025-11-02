@@ -26,8 +26,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { usePathname, useRouter } from 'next/navigation';
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 
 const navItems = [
@@ -67,6 +67,9 @@ export function Header() {
 
   if (isAuthPage && !isUserLoading && !user) {
     return null; // Don't render header on auth pages if not logged in
+  }
+   if (isUserLoading) {
+    return <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6" />;
   }
 
   return (

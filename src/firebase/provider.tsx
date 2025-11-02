@@ -5,7 +5,7 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onIdTokenChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -68,6 +68,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
   const router = useRouter();
+  const pathname = usePathname();
 
 
   // Effect to subscribe to Firebase auth state changes
@@ -84,20 +85,23 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       async (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
           const idToken = await firebaseUser.getIdToken();
-          // Set session cookie
+          // Set session cookie by calling our new API route
           await fetch('/api/auth/session', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
               body: idToken,
           });
           setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-          if(router) {
+          if(pathname === '/login' || pathname === '/register' || pathname === '/') {
             router.push('/dashboard');
           }
         } else {
-           // Clear session cookie
+           // Clear session cookie by calling our new API route
            await fetch('/api/auth/session', { method: 'DELETE' });
            setUserAuthState({ user: null, isUserLoading: false, userError: null });
+           // Optional: Redirect to login if not on a public page
+           if (!['/login', '/register', '/'].includes(pathname)) {
+                router.push('/login');
+           }
         }
       },
       (error) => { // Auth listener error
@@ -106,7 +110,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth, router]); // Depends on the auth instance
+  }, [auth, router, pathname]); // Depends on the auth instance
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
