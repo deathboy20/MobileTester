@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/firebase-admin';
 
+// NOTE: The 'runtime' export has been removed to rely on Next.js's default behavior,
+// which is what we want now that 'serverComponentsExternalPackages' is configured.
+
 const protectedRoutes = ['/dashboard', '/jobs', '/reports', '/settings'];
 const authRoutes = ['/login', '/register'];
 
