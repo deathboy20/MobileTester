@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the MobileTester application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user. (Primary Key)"
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Job": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Job",
+      "type": "object",
+      "description": "Represents a test job submitted by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the job. (Primary Key)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Job)"
+        },
+        "apkUrl": {
+          "type": "string",
+          "description": "URL of the uploaded APK file in Cloud Storage."
+        },
+        "readme": {
+          "type": "string",
+          "description": "Content of the uploaded README.md file."
+        },
+        "devices": {
+          "type": "array",
+          "description": "List of device identifiers selected for testing.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the test job (e.g., 'queued', 'running', 'completed', 'failed')."
+        },
+        "report": {
+          "type": "string",
+          "description": "Summary report of the test run"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration of the test job in seconds."
+        },
+        "screenshots": {
+          "type": "string",
+          "description": "URL of screenshots taken during the test job."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "apkUrl",
+        "devices",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. The `userId` parameter corresponds to the Firebase Auth UID, ensuring path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching the Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/jobs/{jobId}",
+        "definition": {
+          "entityName": "Job",
+          "schema": {
+            "$ref": "#/backend/entities/Job"
+          },
+          "description": "Stores test job data. Includes the `userId` field for associating the job with the user who created it, enabling secure read/write access via rules. Allows for real-time job status monitoring and report generation.",
+          "params": [
+            {
+              "name": "jobId",
+              "description": "The unique identifier for the test job."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the MobileTester application's core features, focusing on secure, scalable, and debuggable data management. The structure is built around two primary collections: `users` and `jobs`. User data is stored under the `/users/{userId}` path, ensuring private user data. Jobs are stored under `/jobs/{jobId}` with the `userId` also stored within the job document, this creates path based ownership for the jobs subcollection. This approach provides authorization independence, as security rules can verify ownership without needing to perform `get()` operations to retrieve the user's ID from a parent document. This is achieved through denormalization (Strategy A) and structural segregation (Strategy B) to ensure consistent security posture and prevent rules from becoming filters (QAPs). This design uses path based ownership for the jobs that relate to a user. This method is secure and scalable."
+  }
+}

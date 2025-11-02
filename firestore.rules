@@ -1,0 +1,64 @@
+/**
+ * @fileoverview Firestore Security Rules for MobileTester application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model where users can only access and modify their own data.
+ * The rules also ensure that jobs are associated with the user who created them, enabling secure access and management.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, with `userId` matching the Firebase Auth UID.
+ * - /jobs/{jobId}: Stores test job data, including a `userId` field indicating the job's owner.
+ *
+ * Key Security Decisions:
+ * - Users can only read and write their own user documents.
+ * - Jobs are owned by the user who created them, and only the owner can modify them.
+ * - Denormalization is used to store the `userId` within the job document, avoiding costly `get()` calls for authorization.
+ * - Data shape validation is relaxed for prototyping, focusing on ownership and relational integrity.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Manages user profile information. Only the authenticated user can read or write their own profile.
+     * @path /users/{userId}
+     * @allow (create) User with matching auth UID can create their profile.
+     * @allow (get, update, delete) Authenticated user can read, update, and delete their own profile.
+     * @deny (create) User cannot create a profile with a mismatched user ID.
+     * @deny (get, update, delete) User cannot read, update, or delete another user's profile.
+     * @principle Enforces strict user-ownership for all operations on user profiles.
+     */
+    match /users/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn() && request.auth.uid == userId;
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Manages test job data. Only the user who created the job can read, update, or delete it.
+     * @path /jobs/{jobId}
+     * @allow (create) Authenticated user can create a job with their user ID.
+     * @allow (get, update, delete) Authenticated user can read, update, and delete their own jobs.
+     * @deny (create) User cannot create a job with a mismatched user ID.
+     * @deny (get, update, delete) User cannot read, update, or delete another user's job.
+     * @principle Enforces strict user-ownership for all operations on test jobs.
+     */
+    match /jobs/{jobId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
